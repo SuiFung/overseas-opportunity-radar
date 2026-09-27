@@ -1,0 +1,219 @@
+{
+  "version": 2,
+  "profiles": {
+    "balanced": [
+      "product-hunt",
+      "beta-list",
+      "indie-hackers",
+      "hacker-news",
+      "github-trending",
+      "chinese-independent-developer",
+      "reddit",
+      "appsumo",
+      "app-store-us"
+    ],
+    "leaderboards": [
+      "product-hunt-hot",
+      "github-trending",
+      "app-store-us"
+    ],
+    "developer": [
+      "hacker-news",
+      "github-trending"
+    ],
+    "radar": [
+      "exploding-topics-products",
+      "exploding-topics-startups"
+    ],
+    "all": [
+      "product-hunt",
+      "product-hunt-hot",
+      "beta-list",
+      "indie-hackers",
+      "hacker-news",
+      "github",
+      "github-trending",
+      "x",
+      "reddit",
+      "g2",
+      "appsumo",
+      "app-store-us",
+      "app-market",
+      "exploding-topics-products",
+      "exploding-topics-startups"
+    ]
+  },
+  "sources": [
+    {
+      "id": "product-hunt",
+      "category": "new-product",
+      "label": "Product Hunt",
+      "adapter": "opencli-json",
+      "command": ["producthunt", "today"],
+      "arguments": ["--limit", "{limit}"],
+      "field_map": {
+        "title": "name",
+        "url": "url",
+        "published_at": "date",
+        "summary": "tagline",
+        "signal": {"rank": "rank", "author": "author"}
+      },
+      "evidence_type": "Product Hunt current launch feed via OpenCLI",
+      "domains": ["producthunt.com"],
+      "date_policy": "keep-all",
+      "purpose": "新发布的 AI 工具、SaaS、效率工具与消费应用；默认使用非浏览器命令以保持宽覆盖采集的响应速度"
+    },
+    {
+      "id": "product-hunt-hot",
+      "category": "leaderboard-candidate",
+      "label": "Product Hunt 今日热门",
+      "adapter": "opencli-json",
+      "command": ["producthunt", "hot"],
+      "arguments": ["--limit", "{limit}", "--window", "background"],
+      "fallback": {
+        "command": ["producthunt", "today"],
+        "arguments": ["--limit", "{limit}"],
+        "evidence_type": "Product Hunt current launch feed via OpenCLI fallback"
+      },
+      "field_map": {
+        "title": "name",
+        "url": "url",
+        "summary": "tagline",
+        "signal": {"rank": "rank", "votes": "votes"}
+      },
+      "evidence_type": "Product Hunt daily leaderboard via OpenCLI Chrome Bridge",
+      "domains": ["producthunt.com"],
+      "date_policy": "keep-all",
+      "purpose": "Product Hunt 首页今日热门榜；需要可用的 OpenCLI Chrome Bridge，失败时回退为当日发布流"
+    },
+    {
+      "id": "beta-list",
+      "category": "new-product",
+      "label": "BetaList Today & Yesterday",
+      "adapter": "betalist-daily-list",
+      "domains": ["betalist.com"],
+      "date_policy": "keep-all",
+      "purpose": "BetaList 首页 Today 与 Yesterday 的全量早期产品列表；每条保留产品页链接、名称、定位和所属日期"
+    },
+    {
+      "id": "indie-hackers",
+      "category": "new-product",
+      "label": "Indie Hackers",
+      "adapter": "exa-site-search",
+      "domains": ["indiehackers.com"],
+      "date_policy": "keep-all",
+      "purpose": "独立开发者案例、收入线索和已验证的小生意"
+    },
+    {
+      "id": "hacker-news",
+      "category": "tech-diffusion",
+      "label": "Hacker News / Show HN",
+      "adapter": "hacker-news-search",
+      "purpose": "开发者产品发布与早期技术反馈"
+    },
+    {
+      "id": "github",
+      "category": "tech-diffusion",
+      "label": "GitHub",
+      "adapter": "github-repositories",
+      "purpose": "近期创建、获得 star 的开源项目与开发者工作流"
+    },
+    {
+      "id": "github-trending",
+      "category": "leaderboard-candidate",
+      "label": "GitHub Trending（周榜）",
+      "adapter": "opencli-json",
+      "command": ["github-trending", "repos"],
+      "arguments": ["--since", "weekly", "--limit", "{limit}"],
+      "field_map": {
+        "title": "repo",
+        "url": "url",
+        "summary": "description",
+        "signal": {"rank": "rank", "stars": "stars", "forks": "forks", "stars_this_week": "starsSince", "language": "language"}
+      },
+      "evidence_type": "GitHub Trending weekly leaderboard via OpenCLI",
+      "purpose": "本周 star 增长最快的开源产品和开发者工具"
+    },
+    {
+      "id": "chinese-independent-developer",
+      "category": "domestic-market-signal",
+      "label": "Chinese Independent Developer",
+      "adapter": "github-markdown-catalog",
+      "repository": "1c7/chinese-independent-developer",
+      "branch": "master",
+      "path": "README.md",
+      "url": "https://github.com/1c7/chinese-independent-developer",
+      "date_policy": "recent-sections",
+      "purpose": "按日期更新的中国独立开发者真实网站与 App 目录；用于发现本土一线产品，并核对海外机会在国内是否已有同类切法"
+    },
+    {
+      "id": "x",
+      "category": "tech-diffusion",
+      "label": "X",
+      "adapter": "exa-site-search",
+      "domains": ["x.com"],
+      "date_policy": "keep-all",
+      "purpose": "创始人、开发者和早期用户的公开讨论"
+    },
+    {
+      "id": "reddit",
+      "category": "real-demand",
+      "label": "Reddit",
+      "adapter": "exa-site-search",
+      "domains": ["reddit.com"],
+      "date_policy": "allow-unknown",
+      "purpose": "用户抱怨、替代需求和早期反馈"
+    },
+    {
+      "id": "g2",
+      "category": "real-demand",
+      "label": "G2",
+      "adapter": "exa-site-search",
+      "domains": ["g2.com"],
+      "date_policy": "allow-unknown",
+      "purpose": "企业软件评价、类目竞争和付费痛点"
+    },
+    {
+      "id": "appsumo",
+      "category": "real-demand",
+      "label": "AppSumo",
+      "adapter": "exa-site-search",
+      "domains": ["appsumo.com"],
+      "date_policy": "allow-unknown",
+      "purpose": "中小企业工具、评论与付费意愿"
+    },
+    {
+      "id": "app-market",
+      "category": "real-demand",
+      "label": "应用市场情报",
+      "adapter": "exa-site-search",
+      "domains": ["appmagic.rocks", "appfigures.com", "similarweb.com"],
+      "date_policy": "keep-all",
+      "purpose": "下载、收入、使用热度和榜单信号"
+    },
+    {
+      "id": "app-store-us",
+      "category": "leaderboard-candidate",
+      "label": "美国 App Store Top Free",
+      "adapter": "apple-top-free",
+      "country": "us",
+      "purpose": "消费软件和移动应用的实时分类榜候选"
+    },
+    {
+      "id": "exploding-topics-products",
+      "category": "radar-candidate",
+      "label": "Exploding Topics Products",
+      "adapter": "exploding-topics-radar",
+      "endpoint": "products",
+      "purpose": "正在加速增长的海外产品候选"
+    },
+    {
+      "id": "exploding-topics-startups",
+      "category": "radar-candidate",
+      "label": "Exploding Topics Startups",
+      "adapter": "exploding-topics-radar",
+      "endpoint": "startups",
+      "purpose": "正在加速增长的海外创业公司候选"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "海外产品机会雷达"
+  short_description: "Find hot overseas software opportunities for China"
+  default_prompt: "Use $overseas-opportunity-radar to find the most promising overseas software opportunities for China."
+policy:
+  allow_implicit_invocation: true
