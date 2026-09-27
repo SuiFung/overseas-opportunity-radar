@@ -1,38 +1,116 @@
 {
-  "version": 2,
+  "version": 4,
+  "runtime": "cloud-native-web-search",
   "profiles": {
     "balanced": [
       "product-hunt",
-      "beta-list",
-      "indie-hackers",
+      "yc-directory",
+      "peerlist-launchpad",
+      "uneed",
       "hacker-news",
       "github-trending",
-      "chinese-independent-developer",
+      "chrome-web-store",
+      "google-play-trending",
+      "exploding-topics-products",
       "reddit",
+      "g2",
       "appsumo",
-      "app-store-us"
+      "shopify-app-store",
+      "zapier-app-directory",
+      "a16z-genai"
+    ],
+    "weekly": [
+      "product-hunt",
+      "yc-directory",
+      "peerlist-launchpad",
+      "uneed",
+      "microlaunch",
+      "beta-list",
+      "hacker-news",
+      "indie-hackers",
+      "github-trending",
+      "chrome-web-store",
+      "google-play-trending",
+      "exploding-topics-products",
+      "exploding-topics-startups",
+      "shopify-app-store",
+      "atlassian-rising-stars",
+      "zapier-app-directory",
+      "notion-marketplace",
+      "reddit",
+      "g2",
+      "appsumo",
+      "app-market",
+      "a16z-genai",
+      "chinese-independent-developer"
+    ],
+    "new-products": [
+      "product-hunt",
+      "yc-directory",
+      "peerlist-launchpad",
+      "uneed",
+      "microlaunch",
+      "beta-list",
+      "hacker-news"
     ],
     "leaderboards": [
-      "product-hunt-hot",
+      "product-hunt",
+      "peerlist-launchpad",
+      "uneed",
       "github-trending",
+      "chrome-web-store",
+      "google-play-trending",
       "app-store-us"
     ],
-    "developer": [
-      "hacker-news",
-      "github-trending"
-    ],
-    "radar": [
+    "growth": [
+      "github-trending",
+      "chrome-web-store",
+      "google-play-trending",
+      "app-market",
       "exploding-topics-products",
       "exploding-topics-startups"
     ],
+    "ecosystems": [
+      "shopify-app-store",
+      "atlassian-rising-stars",
+      "zapier-app-directory",
+      "notion-marketplace"
+    ],
+    "developer": [
+      "hacker-news",
+      "github",
+      "github-trending",
+      "peerlist-launchpad"
+    ],
+    "radar": [
+      "yc-directory",
+      "peerlist-launchpad",
+      "uneed",
+      "microlaunch",
+      "beta-list",
+      "exploding-topics-products",
+      "exploding-topics-startups"
+    ],
+    "demand": [
+      "reddit",
+      "g2",
+      "appsumo"
+    ],
+    "validation": [
+      "app-market",
+      "a16z-genai",
+      "chinese-independent-developer",
+      "shopify-app-store",
+      "notion-marketplace"
+    ],
     "all": [
       "product-hunt",
-      "product-hunt-hot",
       "beta-list",
       "indie-hackers",
       "hacker-news",
       "github",
       "github-trending",
+      "chinese-independent-developer",
       "x",
       "reddit",
       "g2",
@@ -40,180 +118,434 @@
       "app-store-us",
       "app-market",
       "exploding-topics-products",
-      "exploding-topics-startups"
+      "exploding-topics-startups",
+      "yc-directory",
+      "peerlist-launchpad",
+      "uneed",
+      "microlaunch",
+      "chrome-web-store",
+      "google-play-trending",
+      "atlassian-rising-stars",
+      "shopify-app-store",
+      "zapier-app-directory",
+      "notion-marketplace",
+      "a16z-genai"
     ]
   },
+  "default_topics": [
+    "SMB workflow software",
+    "professional productivity software",
+    "consumer content apps",
+    "developer tools early adoption"
+  ],
   "sources": [
     {
       "id": "product-hunt",
-      "category": "new-product",
-      "label": "Product Hunt",
-      "adapter": "opencli-json",
-      "command": ["producthunt", "today"],
-      "arguments": ["--limit", "{limit}"],
-      "field_map": {
-        "title": "name",
-        "url": "url",
-        "published_at": "date",
-        "summary": "tagline",
-        "signal": {"rank": "rank", "author": "author"}
-      },
-      "evidence_type": "Product Hunt current launch feed via OpenCLI",
-      "domains": ["producthunt.com"],
-      "date_policy": "keep-all",
-      "purpose": "新发布的 AI 工具、SaaS、效率工具与消费应用；默认使用非浏览器命令以保持宽覆盖采集的响应速度"
-    },
-    {
-      "id": "product-hunt-hot",
       "category": "leaderboard-candidate",
-      "label": "Product Hunt 今日热门",
-      "adapter": "opencli-json",
-      "command": ["producthunt", "hot"],
-      "arguments": ["--limit", "{limit}", "--window", "background"],
-      "fallback": {
-        "command": ["producthunt", "today"],
-        "arguments": ["--limit", "{limit}"],
-        "evidence_type": "Product Hunt current launch feed via OpenCLI fallback"
-      },
-      "field_map": {
-        "title": "name",
-        "url": "url",
-        "summary": "tagline",
-        "signal": {"rank": "rank", "votes": "votes"}
-      },
-      "evidence_type": "Product Hunt daily leaderboard via OpenCLI Chrome Bridge",
-      "domains": ["producthunt.com"],
-      "date_policy": "keep-all",
-      "purpose": "Product Hunt 首页今日热门榜；需要可用的 OpenCLI Chrome Bridge，失败时回退为当日发布流"
+      "label": "Product Hunt",
+      "domains": [
+        "producthunt.com"
+      ],
+      "recency_days": 7,
+      "queries": [
+        "site:producthunt.com/posts newest product launches",
+        "site:producthunt.com leaderboard daily products"
+      ],
+      "purpose": "当前热门与近期发布的 AI、SaaS、效率和消费产品",
+      "radar_layer": "new-launch",
+      "signal_role": "core"
     },
     {
       "id": "beta-list",
-      "category": "new-product",
+      "category": "radar-candidate",
       "label": "BetaList Today & Yesterday",
-      "adapter": "betalist-daily-list",
-      "domains": ["betalist.com"],
-      "date_policy": "keep-all",
-      "purpose": "BetaList 首页 Today 与 Yesterday 的全量早期产品列表；每条保留产品页链接、名称、定位和所属日期"
+      "domains": [
+        "betalist.com"
+      ],
+      "recency_days": 7,
+      "queries": [
+        "site:betalist.com startups Today Yesterday new products"
+      ],
+      "purpose": "Today / Yesterday 早期产品列表；优先打开首页或产品页核验",
+      "radar_layer": "new-launch",
+      "signal_role": "supporting"
     },
     {
       "id": "indie-hackers",
       "category": "new-product",
       "label": "Indie Hackers",
-      "adapter": "exa-site-search",
-      "domains": ["indiehackers.com"],
-      "date_policy": "keep-all",
-      "purpose": "独立开发者案例、收入线索和已验证的小生意"
+      "domains": [
+        "indiehackers.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:indiehackers.com product launch revenue SaaS",
+        "site:indiehackers.com new product founder workflow"
+      ],
+      "purpose": "独立开发者案例、收入线索和已验证小生意",
+      "radar_layer": "new-launch",
+      "signal_role": "supporting"
     },
     {
       "id": "hacker-news",
       "category": "tech-diffusion",
       "label": "Hacker News / Show HN",
-      "adapter": "hacker-news-search",
-      "purpose": "开发者产品发布与早期技术反馈"
+      "domains": [
+        "news.ycombinator.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:news.ycombinator.com \"Show HN\" AI tool",
+        "site:news.ycombinator.com \"Show HN\" SaaS"
+      ],
+      "purpose": "开发者产品发布与早期技术反馈",
+      "radar_layer": "new-launch",
+      "signal_role": "core"
     },
     {
       "id": "github",
       "category": "tech-diffusion",
       "label": "GitHub",
-      "adapter": "github-repositories",
-      "purpose": "近期创建、获得 star 的开源项目与开发者工作流"
+      "domains": [
+        "github.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:github.com new open source AI agent tool stars"
+      ],
+      "purpose": "近期创建并获得采用的开源项目和开发者工作流",
+      "radar_layer": "growth",
+      "signal_role": "supporting"
     },
     {
       "id": "github-trending",
       "category": "leaderboard-candidate",
-      "label": "GitHub Trending（周榜）",
-      "adapter": "opencli-json",
-      "command": ["github-trending", "repos"],
-      "arguments": ["--since", "weekly", "--limit", "{limit}"],
-      "field_map": {
-        "title": "repo",
-        "url": "url",
-        "summary": "description",
-        "signal": {"rank": "rank", "stars": "stars", "forks": "forks", "stars_this_week": "starsSince", "language": "language"}
-      },
-      "evidence_type": "GitHub Trending weekly leaderboard via OpenCLI",
-      "purpose": "本周 star 增长最快的开源产品和开发者工具"
+      "label": "GitHub Trending",
+      "domains": [
+        "github.com"
+      ],
+      "recency_days": 7,
+      "queries": [
+        "site:github.com/trending weekly trending repositories"
+      ],
+      "purpose": "本周增长明显的开源产品和开发者工具",
+      "radar_layer": "growth",
+      "signal_role": "core"
     },
     {
       "id": "chinese-independent-developer",
       "category": "domestic-market-signal",
       "label": "Chinese Independent Developer",
-      "adapter": "github-markdown-catalog",
-      "repository": "1c7/chinese-independent-developer",
-      "branch": "master",
-      "path": "README.md",
-      "url": "https://github.com/1c7/chinese-independent-developer",
-      "date_policy": "recent-sections",
-      "purpose": "按日期更新的中国独立开发者真实网站与 App 目录；用于发现本土一线产品，并核对海外机会在国内是否已有同类切法"
+      "domains": [
+        "github.com"
+      ],
+      "recency_days": 90,
+      "queries": [
+        "site:github.com/1c7/chinese-independent-developer README recent"
+      ],
+      "purpose": "核对海外机会在中国是否已有独立开发者同类切法",
+      "radar_layer": "domestic-validation",
+      "signal_role": "validation"
     },
     {
       "id": "x",
       "category": "tech-diffusion",
       "label": "X",
-      "adapter": "exa-site-search",
-      "domains": ["x.com"],
-      "date_policy": "keep-all",
-      "purpose": "创始人、开发者和早期用户的公开讨论"
+      "domains": [
+        "x.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:x.com founder launched AI product SaaS"
+      ],
+      "purpose": "创始人、开发者和早期用户公开讨论",
+      "radar_layer": "new-launch",
+      "signal_role": "supporting"
     },
     {
       "id": "reddit",
       "category": "real-demand",
       "label": "Reddit",
-      "adapter": "exa-site-search",
-      "domains": ["reddit.com"],
-      "date_policy": "allow-unknown",
-      "purpose": "用户抱怨、替代需求和早期反馈"
+      "domains": [
+        "reddit.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:reddit.com software alternative too expensive workaround",
+        "site:reddit.com wish there was an app tool manual workflow",
+        "site:reddit.com SaaS missing feature pain point"
+      ],
+      "purpose": "具体抱怨、手工绕行、替代需求和希望存在的工具",
+      "radar_layer": "demand-validation",
+      "signal_role": "core"
     },
     {
       "id": "g2",
       "category": "real-demand",
       "label": "G2",
-      "adapter": "exa-site-search",
-      "domains": ["g2.com"],
-      "date_policy": "allow-unknown",
-      "purpose": "企业软件评价、类目竞争和付费痛点"
+      "domains": [
+        "g2.com"
+      ],
+      "recency_days": 90,
+      "queries": [
+        "site:g2.com reviews cons expensive missing features software"
+      ],
+      "purpose": "企业软件评价、类目竞争和付费痛点",
+      "radar_layer": "demand-validation",
+      "signal_role": "core"
     },
     {
       "id": "appsumo",
       "category": "real-demand",
       "label": "AppSumo",
-      "adapter": "exa-site-search",
-      "domains": ["appsumo.com"],
-      "date_policy": "allow-unknown",
-      "purpose": "中小企业工具、评论与付费意愿"
-    },
-    {
-      "id": "app-market",
-      "category": "real-demand",
-      "label": "应用市场情报",
-      "adapter": "exa-site-search",
-      "domains": ["appmagic.rocks", "appfigures.com", "similarweb.com"],
-      "date_policy": "keep-all",
-      "purpose": "下载、收入、使用热度和榜单信号"
+      "domains": [
+        "appsumo.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:appsumo.com software reviews lifetime deal popular"
+      ],
+      "purpose": "中小企业工具、评论、交易热度和付费意愿",
+      "radar_layer": "demand-validation",
+      "signal_role": "core"
     },
     {
       "id": "app-store-us",
       "category": "leaderboard-candidate",
-      "label": "美国 App Store Top Free",
-      "adapter": "apple-top-free",
-      "country": "us",
-      "purpose": "消费软件和移动应用的实时分类榜候选"
+      "label": "US App Store Top Free",
+      "domains": [
+        "apps.apple.com"
+      ],
+      "recency_days": 7,
+      "queries": [
+        "US App Store top free apps current ranking"
+      ],
+      "purpose": "消费软件和移动应用当前榜单候选",
+      "radar_layer": "growth",
+      "signal_role": "supporting"
+    },
+    {
+      "id": "app-market",
+      "category": "market-signal",
+      "label": "App Market Intelligence",
+      "domains": [
+        "appmagic.rocks",
+        "appfigures.com",
+        "similarweb.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "mobile app growth downloads revenue trending apps"
+      ],
+      "purpose": "下载、收入、使用热度和榜单信号",
+      "radar_layer": "demand-validation",
+      "signal_role": "validation"
     },
     {
       "id": "exploding-topics-products",
       "category": "radar-candidate",
       "label": "Exploding Topics Products",
-      "adapter": "exploding-topics-radar",
-      "endpoint": "products",
-      "purpose": "正在加速增长的海外产品候选"
+      "domains": [
+        "explodingtopics.com"
+      ],
+      "recency_days": 90,
+      "queries": [
+        "site:explodingtopics.com products trending software AI apps"
+      ],
+      "purpose": "增长中的海外产品与关键词",
+      "radar_layer": "growth",
+      "signal_role": "core"
     },
     {
       "id": "exploding-topics-startups",
       "category": "radar-candidate",
       "label": "Exploding Topics Startups",
-      "adapter": "exploding-topics-radar",
-      "endpoint": "startups",
-      "purpose": "正在加速增长的海外创业公司候选"
+      "domains": [
+        "explodingtopics.com"
+      ],
+      "recency_days": 90,
+      "queries": [
+        "site:explodingtopics.com startups trending software startups"
+      ],
+      "purpose": "增长中的海外创业公司候选",
+      "radar_layer": "growth",
+      "signal_role": "supporting"
+    },
+    {
+      "id": "yc-directory",
+      "category": "radar-candidate",
+      "radar_layer": "new-launch",
+      "signal_role": "core",
+      "label": "Y Combinator Startup Directory / Recent Batches",
+      "domains": [
+        "ycombinator.com"
+      ],
+      "recency_days": 90,
+      "queries": [
+        "site:ycombinator.com/companies 2026 startup batch AI SaaS productivity",
+        "site:ycombinator.com/companies/industry recent 2026 startups software"
+      ],
+      "purpose": "高质量早期创业产品与最新 batch；重点找刚进入目录、产品机制清晰且已有早期采用的公司"
+    },
+    {
+      "id": "peerlist-launchpad",
+      "category": "leaderboard-candidate",
+      "radar_layer": "new-launch",
+      "signal_role": "core",
+      "label": "Peerlist Launchpad",
+      "domains": [
+        "peerlist.io"
+      ],
+      "recency_days": 14,
+      "queries": [
+        "site:peerlist.io/launchpad current week Launchpad products",
+        "site:peerlist.io/launchpad latest weekly product launches AI SaaS"
+      ],
+      "purpose": "每周开发者/设计师新品榜，适合发现 AI、SaaS、开发者工具和效率产品"
+    },
+    {
+      "id": "uneed",
+      "category": "leaderboard-candidate",
+      "radar_layer": "new-launch",
+      "signal_role": "core",
+      "label": "Uneed Daily / Weekly / Monthly",
+      "domains": [
+        "uneed.best"
+      ],
+      "recency_days": 14,
+      "queries": [
+        "site:uneed.best best products launching today weekly",
+        "site:uneed.best weekly monthly product launches SaaS AI"
+      ],
+      "purpose": "高密度 Indie/Micro-SaaS 新品与榜单；优先看日榜、周榜和月榜中重复出现的产品"
+    },
+    {
+      "id": "microlaunch",
+      "category": "radar-candidate",
+      "radar_layer": "new-launch",
+      "signal_role": "supporting",
+      "label": "Microlaunch",
+      "domains": [
+        "microlaunch.net"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:microlaunch.net current month products startups launches",
+        "site:microlaunch.net product launch SaaS AI monthly"
+      ],
+      "purpose": "月度早期产品与小型 SaaS，补充 Product Hunt/Peerlist 未覆盖的独立产品"
+    },
+    {
+      "id": "chrome-web-store",
+      "category": "leaderboard-candidate",
+      "radar_layer": "growth",
+      "signal_role": "core",
+      "label": "Chrome Web Store Top Charts",
+      "domains": [
+        "chromewebstore.google.com"
+      ],
+      "recency_days": 7,
+      "queries": [
+        "site:chromewebstore.google.com/top-charts/trending Chrome extensions trending",
+        "site:chromewebstore.google.com/top-charts/notable Chrome extensions new notable"
+      ],
+      "purpose": "浏览器扩展的 Trending / Popular / New and notable；适合发现低开发成本、高频工作流机会"
+    },
+    {
+      "id": "google-play-trending",
+      "category": "leaderboard-candidate",
+      "radar_layer": "growth",
+      "signal_role": "core",
+      "label": "Google Play / Similarweb Trending Android Apps",
+      "domains": [
+        "similarweb.com"
+      ],
+      "recency_days": 14,
+      "queries": [
+        "site:similarweb.com/top-apps/google top trending Android apps United States",
+        "site:similarweb.com/top-apps/google productivity trending apps"
+      ],
+      "purpose": "Android 应用上升榜、进入 Top 100 和分类趋势，补齐 App Store 之外的移动端增长信号"
+    },
+    {
+      "id": "atlassian-rising-stars",
+      "category": "ecosystem-signal",
+      "radar_layer": "vertical-ecosystem",
+      "signal_role": "supporting",
+      "label": "Atlassian Marketplace Rising Stars",
+      "domains": [
+        "marketplace.atlassian.com"
+      ],
+      "recency_days": 60,
+      "queries": [
+        "site:marketplace.atlassian.com \"Rising Star\" app Jira Confluence",
+        "site:marketplace.atlassian.com collections rising star apps"
+      ],
+      "purpose": "企业协作生态中增长较快的小工具，适合发现 Jira/Confluence 周边 B2B SaaS 需求"
+    },
+    {
+      "id": "shopify-app-store",
+      "category": "ecosystem-signal",
+      "radar_layer": "vertical-ecosystem",
+      "signal_role": "core",
+      "label": "Shopify App Store",
+      "domains": [
+        "apps.shopify.com"
+      ],
+      "recency_days": 30,
+      "queries": [
+        "site:apps.shopify.com Built for Shopify apps popular reviews operations marketing",
+        "site:apps.shopify.com categories new apps merchant workflow reviews"
+      ],
+      "purpose": "电商垂直 SaaS 的成熟付费需求、评论量与工作流；重点看高评论但机制仍可本地化的细分类目"
+    },
+    {
+      "id": "zapier-app-directory",
+      "category": "ecosystem-signal",
+      "radar_layer": "vertical-ecosystem",
+      "signal_role": "core",
+      "label": "Zapier App Directory",
+      "domains": [
+        "zapier.com"
+      ],
+      "recency_days": 60,
+      "queries": [
+        "site:zapier.com/apps/categories/upcoming upcoming apps",
+        "site:zapier.com/apps recently launched AI agents MCP apps"
+      ],
+      "purpose": "Upcoming / Recently Launched / 新进入自动化生态的软件，反映哪些工具开始进入企业工作流"
+    },
+    {
+      "id": "notion-marketplace",
+      "category": "ecosystem-signal",
+      "radar_layer": "vertical-ecosystem",
+      "signal_role": "supporting",
+      "label": "Notion Marketplace",
+      "domains": [
+        "notion.com"
+      ],
+      "recency_days": 60,
+      "queries": [
+        "site:notion.com/templates marketplace AI skills agents templates",
+        "site:notion.com marketplace connections agents AI skills"
+      ],
+      "purpose": "模板、Agents、AI skills、Connections 等生产力生态趋势，适合发现工作流产品化机会"
+    },
+    {
+      "id": "a16z-genai",
+      "category": "market-validation",
+      "radar_layer": "demand-validation",
+      "signal_role": "validation",
+      "label": "a16z Top Gen AI Apps",
+      "domains": [
+        "a16z.com"
+      ],
+      "recency_days": 365,
+      "queries": [
+        "site:a16z.com 100 gen AI apps latest consumer AI",
+        "site:a16z.com top generative AI consumer apps 2026"
+      ],
+      "purpose": "使用量已被第三方榜单验证的 AI 产品；用于二次确认赛道和机制，不作为新品唯一来源"
     }
   ]
 }

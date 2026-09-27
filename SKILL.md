@@ -1,59 +1,171 @@
 ---
 name: overseas-opportunity-radar
-description: Find overseas software ideas worth adapting for China and return a practical, ranked inspiration list. Use when the user wants hot overseas apps, rising software ideas, or China-localization opportunities; do not use for product implementation.
+description: Find overseas software ideas worth adapting for China and return a practical, ranked inspiration list. Cloud-native version: use built-in web search for discovery and local scripts only for planning, validation, and report persistence.
 ---
 
-# 海外热门机会雷达
+# 海外热门机会雷达（Cloud Native）
 
-目标是尽可能发现有启发性的海外软件 idea，并直接交付**所有不重复、能说清中国切法的方向**。搜索链接用于说明灵感从哪里来和大致热度，不是投资尽调门槛。
+目标是尽可能发现有启发性的海外软件 idea，并直接交付**所有不重复、能说清中国切法的方向**。
 
-## 执行
+本版本专门面向 ChatGPT 云端/定时任务运行：**联网采集必须使用模型可用的内置 Web 搜索/网页读取能力，不依赖 OpenCLI、mcporter、Exa CLI、gh CLI、浏览器桥接、Chrome 登录态或任何第三方 Python 包。** 本地脚本不承担联网职责，只负责生成检索计划、校验结构化证据和保存报告。
 
-1. 先明确用户指定的赛道、目标用户或产品类型；未指定时不传统一查询词，直接让每个来源按用途覆盖"中小商家工作流"、"专业用户效率工具"、"内容/消费应用"和"开发者早期采用"。不要把四个赛道拆成四轮串行检索，也不要把它们硬塞进一句宽查询。
-2. 平行建立三类**候选池**，三类条目都可以直接成为候选，不能只把它们当作评分信号：
-   - **榜单候选**：Product Hunt 的日/周/月 Top，GitHub Trending 与 7 天 star 增长，应用商店分类榜，AppSumo 热门 deal；榜单中的每个产品/项目直接进入候选池。
-   - **雷达候选**：Exploding Topics 的产品、创业公司、关键词趋势，Trending Startups，BetaList 新产品；产品/公司直接进入候选池，趋势关键词则生成下一轮定向搜索词。BetaList 使用首页明确分组的 **Today** 和 **Yesterday** 全量列表，逐条保留产品页链接和定位，不用搜索结果代替。
-   - **需求候选**：Reddit、G2、AppSumo 评论里的具体抱怨、手工绕行和“希望有某工具”的场景；每个重复问题直接形成一个问题型候选。
-   Hacker News、X、Indie Hackers 用来补充早期扩散、产品定位和创始人叙述。
-3. 不要把榜单、雷达或需求源降级成“趋势层判读”。例如 Product Hunt Top 的某款产品应该先作为“产品候选”进入清单，再结合评论、国内替代和本地化切法决定是否保留。
-4. 为了发现 idea，不要因页面日期缺失、产品较早发布或只有单一来源就丢弃条目。保留它们，并将“新鲜度/热度”轻量标注为近期讨论、持续需求、旧产品新切法或仅作灵感。
-5. 先运行一次宽覆盖采集。按来源注册表中的路由优先级获取条目：**专用 CLI 的结构化输出**（如 OpenCLI 的 Product Hunt、GitHub Trending）→ 官方 API / 原生 CLI → 公开榜单或 RSS → 公开搜索。OpenCLI 的浏览器型命令只用于需要实时榜单或登录态的来源；若 Chrome Bridge 不可用，使用注册表给出的非浏览器回退，不让单一浏览器故障拖慢整轮采集。只有某个赛道明显值得深挖时，再补一轮定向采集。将原始链接写入内部证据：
+## 云端执行原则
 
-   ```sh
-   ./skills/overseas-opportunity-radar/scripts/run-step.sh discover \
-     --days 30 --limit 5 --sources balanced
-   ```
+1. 不尝试在 Python、Shell 或容器脚本里联网。云端沙盒可能禁止 DNS/外网访问。
+2. 不检查或安装 `opencli`、`mcporter`、`gh`、Playwright、Selenium、Node 包或 pip 包。
+3. 需要公开互联网数据时，直接使用当前运行环境提供的 Web 搜索/网页读取工具。
+4. 如果某个来源无法直接访问，用公开搜索结果、来源原页面、官方 API 页面或可信二级来源补位；单个来源失败不能阻塞整轮。
+5. 任何“热度/增长/排名”结论都要有可追溯 URL；搜索摘要只作为线索，重要候选尽量打开原页面核实。
 
-   默认 `balanced` 追求广覆盖与低延迟；需要首页实时榜和分类榜时使用 `--sources leaderboards`。命令只写入 `.opportunity-radar/runs/*-evidence.json`，保存可追溯的原始证据；不要把它的内容直接当作面向用户的答复。
-6. 读取 JSON，并用可用的 API、CLI 或公开搜索补查最有意思的条目。优先使用来源原页面、Hacker News 和 GitHub 的原生数据；但不要把“补查不全”当作不输出 idea 的理由。
-7. 将候选按**同一个用户问题或产品机制**聚类，而不是按网站逐条罗列。一个单一帖子、榜单条目或趋势产品都可以变成候选 idea；明显无产品切口或无法映射到中国场景的条目再淘汰。
-8. 在最终回复前，先按下方“报告归档”规则保存本次报告，再从保存的文件整理回复；每次运行都必须产生一份报告，即使结果为空或采集受限。
+## 执行流程
 
-## 报告归档（每次运行必做）
+### 1. 生成检索计划
 
-- 报告目录固定为项目目录下的 `.opportunity-radar/reports/`；原始采集证据仍只放 `.opportunity-radar/runs/`，两者不混用。
-- 文件名为 `YYYYMMDD-NN.md`：使用保存当天的本地日期，`NN` 从 `01` 起按当天已有文件递增；序号至少两位，超过 `99` 时自然扩展为三位。任何情况下都不覆盖已有报告。
-- 先写一份自包含的报告正文，再调用 `scripts/save-report.py --input <draft.md>` 保存。脚本以独占创建方式分配下一个序号，避免重复命名；可用 `OPPORTUNITY_RADAR_PROJECT_DIR` 指定项目目录，或用 `OPPORTUNITY_RADAR_REPORT_DIR` 覆盖报告目录。
-- 文件内容就是面向用户的报告正文：标题、机会表格和“暂不建议碰”部分；不写原始 JSON、采集日志或内部评分。最终回复中的报告正文必须与文件一致，回复只需额外附上文件链接。
-- 保存后重新读取文件确认内容和链接完整，再发送最终回复。用户另行指定目录或命名格式时，以用户指定为准。
+先运行：
+
+```sh
+./scripts/run-step.sh discover --days 30 --limit 8 --sources weekly
+```
+
+这个命令**不会联网**，只会根据 `references/source-registry.json` 生成：
+
+```text
+.opportunity-radar/runs/YYYY-MM-DD-HHMMSS-plan.json
+```
+
+计划里包含来源、类别、域名、建议查询和新鲜度要求。读取该 JSON 后，使用内置 Web 搜索并行执行其中的检索任务。
+
+未指定赛道时，不传统一查询词；默认覆盖：
+- 中小商家工作流
+- 专业用户效率工具
+- 内容/消费应用
+- 开发者早期采用
+
+### 2. 建立四层雷达
+
+来源按“发现新品 → 观察增长 → 垂直生态验证 → 真实需求/使用量验证”组织，不按网站机械罗列。
+
+- **新品雷达**：Product Hunt、YC Startup Directory、Peerlist Launchpad、Uneed、Microlaunch、BetaList、Show HN。用于发现刚发布或刚进入早期采用阶段的产品。
+- **增长雷达**：GitHub Trending、Chrome Web Store Top Charts、Google Play / Similarweb Trending、Exploding Topics。用于找排名上升、采用加速或机制快速扩散的产品。
+- **垂直生态雷达**：Shopify App Store、Atlassian Marketplace、Zapier App Directory、Notion Marketplace。用于发现已经嵌入真实业务工作流、愿意付费的窄需求。
+- **需求与验证**：Reddit、G2、AppSumo、App Market Intelligence、a16z Gen AI 榜单。用于确认抱怨、付费意愿、使用量和赛道热度。
+
+前三层条目可以直接成为候选；验证层通常用来补证据，除非其中出现非常明确的新问题或新机制。Chinese Independent Developer 用于最后核对国内是否已有明显同类切法。
+
+### 3. Web 搜索执行方式
+
+读取 plan 后按来源并行搜索。优先级：
+
+1. 来源原站榜单/产品页/帖子；
+2. 官方 API 或官方公开页面；
+3. Hacker News / GitHub 等可核验讨论页；
+4. 搜索结果摘要与可信二级报道。
+
+搜索规则：
+- 当前榜单、最近发布、近期讨论默认用近 7–30 天的新鲜度约束；
+- Peerlist 优先覆盖最近 1–2 周 Launchpad；Uneed 优先覆盖 Daily / Weekly / Monthly 中重复出现的产品；
+- Chrome Web Store 优先看 Trending 与 New and notable；Google Play 优先看 Similarweb 的 Rising / Joined top 100；
+- Shopify / Atlassian / Zapier / Notion 不追求全量扫榜，优先看评论量、榜单变化、Recent/Upcoming 与明确业务工作流；
+- BetaList 优先覆盖 Today / Yesterday；
+- Reddit/G2/AppSumo 重点搜索“pain / alternative / wish / manual / expensive / missing / workaround”等需求表达；
+- 对没有明确发布日期但有明确产品机制的条目可以保留，并标为“持续需求 / 旧产品新切法 / 仅作灵感”；
+- 不因为某个来源打不开就删除一个已经有其它公开证据支持的候选。
+
+
+### 3.1 来源权重与去重
+
+`source-registry.json` 中每个来源包含 `radar_layer` 和 `signal_role`：
+- `core`：每周核心发现源，优先采集；
+- `supporting`：补充覆盖，避免遗漏长尾；
+- `validation`：用于验证使用量、市场成熟度或国内竞争，不应单独证明“新品爆火”。
+
+同一个产品若同时出现在多个新品/增长来源，视为更强信号，但报告仍按“用户问题 / 产品机制”聚类，只保留一条机会方向并合并证据。
+
+### 4. 形成证据 JSON
+
+搜索完成后，把有效条目整理为：
+
+```text
+.opportunity-radar/runs/YYYY-MM-DD-HHMMSS-evidence.json
+```
+
+结构必须符合 `references/evidence-schema.json`。每条记录至少包含：
+- `source_id`
+- `title`
+- `url`
+- `summary`
+- `evidence_type`
+
+可选：
+- `published_at`
+- `signal`
+- `discussion_url`
+
+然后运行：
+
+```sh
+python3 scripts/validate-evidence.py .opportunity-radar/runs/<file>-evidence.json
+```
+
+校验通过后再进入聚类与报告阶段。
+
+### 5. 聚类与判断
+
+将候选按**同一个用户问题或产品机制**聚类，而不是按网站逐条罗列。
+
+每个机会至少回答：
+- 海外现在出现了什么产品/需求信号？
+- 用户问题是什么？
+- 为什么中国市场存在可迁移空间？
+- 第一版具体工作流是什么？
+- 第一个适合切入的用户/行业是谁？
+
+不要因为证据不够“投研级”而过度删 idea；本 skill 目标是产品机会发现，不是投资尽调。
+
+### 6. 报告归档（每次运行必做）
+
+报告目录固定为项目目录下：
+
+```text
+.opportunity-radar/reports/
+```
+
+文件名：`YYYYMMDD-NN.md`，当天从 `01` 递增，永不覆盖。
+
+先写完整 Markdown 正文到临时文件，然后运行：
+
+```sh
+python3 scripts/save-report.py --input <draft.md>
+```
+
+保存后重新读取文件确认内容完整，再把该 `.md` 文件作为最终交付附件。
 
 ## 交付格式
 
-用下面的表格直接给出“本次最值得看的机会”，按优先级排序：
+```markdown
+# 海外产品机会雷达 YYYY-MM-DD
 
 | 优先级 | 机会 | 海外热度 / 需求证据 | 国内能怎么做 | 判断 |
 |---:|---|---|---|---|
+| 1 | ... | ... | ... | 优先看 |
 
-- 表格中的“需求证据”写成自然语言并嵌入 1–3 个直接链接。
-- “国内能怎么做”写第一版具体工作流和首个行业，不写泛泛的“本地化”。
-- “判断”使用“优先看 / 值得看 / 待验证 / 不建议”，剔除“不建议”的机会。
-- 只合并同一问题的重复条目，不因篇幅或证据不足而特意减少 idea。
-- 表格后仅补充“暂不建议碰”的方向。
-- 除非用户要求，不输出原始采集日志、来源状态表、候选卡、评分表、验证计划或命令教程。
+## 暂不建议碰
+
+- ...
+```
+
+判断只使用：
+- `优先看`
+- `值得看`
+- `待验证`
+- `不建议`
+
+最终表格中剔除 `不建议`；这些方向只放在“暂不建议碰”。
 
 ## 约束
 
-- 不把单一 GitHub star、单篇帖子、搜索排名或无日期页面写成“爆火”；它们可以作为灵感来源。
-- 区分“近期讨论”“持续需求”“旧产品的新本地切法”和“仅作灵感”，但不要求每一项都有完整增长数据。
+- 不把单一 GitHub star、单篇帖子、搜索排名或无日期页面写成“爆火”。
+- 区分“近期讨论”“持续需求”“旧产品的新本地切法”和“仅作灵感”。
 - 海外产品只用于发现问题模型和本地化机会，不复制品牌、代码、界面、素材或受保护内容。
-- 来源范围与适配器在 [来源注册表](references/source-registry.json) 中维护；不要在采集脚本里硬编码网站。
+- 不输出原始采集日志、内部 JSON、评分表或来源状态表，除非用户明确要求。
+- 来源和查询策略只在 `references/source-registry.json` 维护，不在执行流程里硬编码。
